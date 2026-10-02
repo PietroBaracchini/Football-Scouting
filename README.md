@@ -15,12 +15,9 @@ deliberately kept apart:
 - **Data** — season totals taken from FotMob, converted to per-90, and scored 0–100
   against positional benchmarks. Each position is judged on the 7–12 metrics that
   matter for that position, with its own weights.
-- **Eye** — a grid of positional competencies scored 1–10 from watching the player.
-  A centre back is judged on defending crosses, covering the space behind, duels,
-  stepping out to press and building up under and without pressure. A winger on
-  dribbling, crossing, playmaking, runs in behind, finishing, pressing and tracking back.
+- **Scout Eye** — a grid of positional competencies scored 1–10 from watching the player.
 
-The final rating combines them, currently 45% data and 55% eye. Both halves
+The final rating combines them, currently 45% data and 55% scout eye. Both halves
 re-normalise over whatever was actually filled in, and both report how much that was,
 so a score built on four metrics is never mistaken for one built on twelve.
 
