@@ -3,7 +3,7 @@
 A scouting system built from scratch: a structured player database, a hybrid rating
 model that keeps data and judgement separate, and a board to read the results.
 
-**→ [Open the board](https://PietroBaracchini.github.io/football-scouting/)**
+**→ [Open the board](https://pietrobaracchini.github.io/Football-Scouting/)**
 
 ---
 
