@@ -3,7 +3,7 @@
 A scouting system built from scratch: a structured player database, a hybrid rating
 model that keeps data and judgement separate, and a board to read the results.
 
-**→ [Open the board](https://USERNAME.github.io/football-scouting/)**
+**→ [Open the board](https://PietroBaracchini.github.io/football-scouting/)**
 
 ---
 
@@ -63,4 +63,4 @@ needs calibrating as more players go in.
 
 ---
 
-Pietro Baracchini — MRICS, 360 Scouting Pro, SICS, PFSA Level 1
+Pietro Baracchini 
