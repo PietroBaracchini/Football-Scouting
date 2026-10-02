@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scouting board</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chivo:wght@700;900&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: overview on top (table + divergence), then one player's full breakdown below */
+:root{
+  --bg:#fcfcfb; --surface:#ffffff; --sunken:#f6f5f2; --line:#e4e3de; --line-soft:#eeedea;
+  --ink:#1b1c1a; --ink-2:#4a4b47; --ink-3:#787972;
+  --data:#00795c; --eye:#534ab7; --flag:#a8620f;
+  --data-soft:rgba(0,121,92,.12); --eye-soft:rgba(83,74,183,.12); --flag-soft:rgba(168,98,15,.10);
+  --display:"Chivo","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#131412; --surface:#1b1c1a; --sunken:#201f1d; --line:#32332f; --line-soft:#262724;
+  --ink:#f0efea; --ink-2:#b8b7b0; --ink-3:#86857e;
+  --data:#35a882; --eye:#8a80e8; --flag:#d99340;
+  --data-soft:rgba(53,168,130,.16); --eye-soft:rgba(138,128,232,.16); --flag-soft:rgba(217,147,64,.14);
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#131412; --surface:#1b1c1a; --sunken:#201f1d; --line:#32332f; --line-soft:#262724;
+  --ink:#f0efea; --ink-2:#b8b7b0; --ink-3:#86857e;
+  --data:#35a882; --eye:#8a80e8; --flag:#d99340;
+  --data-soft:rgba(53,168,130,.16); --eye-soft:rgba(138,128,232,.16); --flag-soft:rgba(217,147,64,.14);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--body); font-size:15px;
+  line-height:1.55; padding-inline:24px; padding-block:0; -webkit-font-smoothing:antialiased}
+img{max-width:100%}
+.wrap{max-width:900px; margin:0 auto}
+
+header.top{padding-block:48px 24px; border-bottom:2px solid var(--ink); display:flex; flex-wrap:wrap;
+  gap:18px; align-items:flex-end; justify-content:space-between}
+.kicker{font-family:var(--mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase;
+  color:var(--ink-3); margin-bottom:12px}
+h1{font-family:var(--display); font-weight:900; font-size:clamp(32px,7vw,46px); line-height:1.02;
+  letter-spacing:-.025em; margin:0}
+.wts{font-family:var(--mono); font-size:11.5px; color:var(--ink-2); text-align:right; line-height:1.8}
+.wts b{color:var(--ink); font-weight:500}
+
+section{padding-block:34px; border-bottom:1px solid var(--line-soft)}
+section:last-of-type{border-bottom:none}
+h2{font-family:var(--display); font-weight:700; font-size:21px; letter-spacing:-.015em; margin:0 0 4px}
+.sub{font-size:13.5px; color:var(--ink-3); margin:0 0 20px}
+
+/* table */
+.tscroll{overflow-x:auto; border:1px solid var(--line); border-radius:4px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:14px; min-width:620px}
+th,td{text-align:left; padding:10px 13px; border-bottom:1px solid var(--line-soft)}
+tbody tr:last-child td{border-bottom:none}
+th{font-family:var(--mono); font-size:10px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-3); font-weight:400; border-bottom:1px solid var(--line); cursor:pointer;
+  user-select:none; white-space:nowrap; background:var(--surface)}
+th:hover{color:var(--ink)}
+th .ar{opacity:0; margin-left:3px}
+th.on{color:var(--ink)} th.on .ar{opacity:1}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--sunken)}
+tbody tr.sel{background:var(--eye-soft)}
+td.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; font-size:13px}
+td.nm{font-weight:500; white-space:nowrap}
+.fin{font-weight:600}
+.chip{font-family:var(--mono); font-size:10px; letter-spacing:.05em; padding:2px 6px; border-radius:3px;
+  background:var(--eye-soft); color:var(--eye); white-space:nowrap}
+.lvl{font-family:var(--mono); font-size:12px; color:var(--ink-2); white-space:nowrap}
+
+/* dumbbell */
+figure{margin:20px 0 0; padding:18px 16px 14px; border:1px solid var(--line); border-radius:4px; background:var(--surface)}
+.chart-head{display:flex; flex-wrap:wrap; gap:12px; align-items:baseline; justify-content:space-between; margin-bottom:16px}
+.chart-title{font-weight:600; font-size:14px}
+.legend{display:flex; gap:14px; flex-wrap:wrap}
+.lg{display:flex; align-items:center; gap:6px; font-size:12.5px; color:var(--ink-2)}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.dot.d{background:var(--data)} .dot.e{background:var(--eye)}
+.rows{display:flex; flex-direction:column; gap:2px}
+.drow{display:grid; grid-template-columns:104px 1fr; align-items:center; gap:10px; min-width:0}
+.rlab{font-size:12.5px; color:var(--ink-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.track{position:relative; height:28px; min-width:0; border-radius:3px; cursor:default}
+.track:hover{background:var(--sunken)}
+.conn{position:absolute; top:50%; height:2px; transform:translateY(-50%); background:var(--ink-3); opacity:.4; border-radius:1px}
+.pt{position:absolute; top:50%; width:11px; height:11px; border-radius:50%; transform:translate(-50%,-50%); box-shadow:0 0 0 2px var(--surface)}
+.pt.d{background:var(--data)} .pt.e{background:var(--eye)}
+.gl{position:absolute; top:0; bottom:0; width:1px; background:var(--line-soft)}
+.axrow{display:grid; grid-template-columns:104px 1fr; gap:10px}
+.axis{position:relative; height:18px; margin-top:4px; border-top:1px solid var(--line-soft)}
+.tick{position:absolute; top:3px; transform:translateX(-50%); font-family:var(--mono); font-size:10px; color:var(--ink-3)}
+figcaption{font-size:13px; color:var(--ink-2); margin-top:14px; padding-top:12px; border-top:1px solid var(--line-soft)}
+
+/* player picker */
+.picker{display:flex; flex-wrap:wrap; gap:7px; margin-bottom:22px}
+.pk{font-family:var(--body); font-size:13.5px; padding:6px 13px; border-radius:20px; cursor:pointer;
+  border:1px solid var(--line); background:var(--surface); color:var(--ink-2); font-weight:500}
+.pk:hover{border-color:var(--ink-3); color:var(--ink)}
+.pk.on{background:var(--ink); color:var(--bg); border-color:var(--ink)}
+.pk:focus-visible{outline:2px solid var(--eye); outline-offset:2px}
+
+/* id card */
+.idcard{display:grid; grid-template-columns:repeat(auto-fit,minmax(118px,1fr)); gap:1px;
+  background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden; margin-bottom:22px}
+.idc{background:var(--surface); padding:11px 13px; min-width:0}
+.idc .k{font-family:var(--mono); font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3)}
+.idc .v{font-size:14px; font-weight:500; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+/* breakdown columns */
+.cols{display:grid; grid-template-columns:1fr 1fr; gap:16px}
+@media (max-width:720px){.cols{grid-template-columns:1fr}}
+.panel{border:1px solid var(--line); border-radius:4px; background:var(--surface); padding:16px 16px 14px; min-width:0}
+.ph{display:flex; align-items:baseline; justify-content:space-between; gap:10px; margin-bottom:4px}
+.pt2{font-weight:600; font-size:14px}
+.pv{font-family:var(--mono); font-size:19px; font-weight:500; font-variant-numeric:tabular-nums}
+.pv.d{color:var(--data)} .pv.e{color:var(--eye)}
+.pmeta{font-family:var(--mono); font-size:11px; color:var(--ink-3); margin-bottom:16px}
+
+.brow{margin-bottom:11px; min-width:0}
+.brow:last-child{margin-bottom:0}
+.bl{display:flex; justify-content:space-between; gap:8px; align-items:baseline; margin-bottom:4px}
+.bn{font-size:12.5px; color:var(--ink-2); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0}
+.bv{font-family:var(--mono); font-size:12px; font-variant-numeric:tabular-nums; flex:none; color:var(--ink)}
+.bw{font-family:var(--mono); font-size:10px; color:var(--ink-3); flex:none; margin-left:7px}
+.bt{height:7px; border-radius:4px; background:var(--sunken); overflow:hidden; position:relative}
+.bf{height:100%; border-radius:4px}
+.bf.d{background:var(--data)} .bf.e{background:var(--eye)}
+.brow.na .bt{background:repeating-linear-gradient(135deg,var(--flag-soft) 0 5px,transparent 5px 10px);
+  box-shadow:inset 0 0 0 1px var(--flag-soft)}
+.brow.na .bn{color:var(--ink-3)}
+.brow.na .bv{color:var(--flag); font-size:11px}
+
+.tip{position:absolute; z-index:20; pointer-events:none; opacity:0; transition:opacity .11s;
+  background:var(--ink); color:var(--bg); font-family:var(--mono); font-size:11px; padding:6px 9px;
+  border-radius:4px; white-space:nowrap; transform:translate(-50%,-118%)}
+.tip.on{opacity:1}
+
+.note{font-size:13.5px; color:var(--ink-2); margin-top:18px; padding-left:12px; border-left:2px solid var(--line)}
+footer{padding-block:28px 52px; font-family:var(--mono); font-size:11px; color:var(--ink-3); letter-spacing:.04em}
+@media (max-width:560px){body{padding-inline:18px}.drow,.axrow{grid-template-columns:76px 1fr}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header class="top">
+  <div>
+    <div class="kicker">scouting_database_fotmob · 5 giocatori</div>
+    <h1>Scouting board</h1>
+  </div>
+  <div class="wts">peso dati <b>45%</b><br>peso occhio <b>55%</b></div>
+</header>
+
+<section>
+  <h2>La shortlist</h2>
+  <p class="sub">Clicca una colonna per ordinare, una riga per aprire la scheda sotto.</p>
+  <div class="tscroll">
+    <table id="tbl">
+      <thead><tr>
+        <th data-k="name">Giocatore<span class="ar">▾</span></th>
+        <th data-k="prof">Profilo<span class="ar">▾</span></th>
+        <th data-k="club">Club<span class="ar">▾</span></th>
+        <th data-k="obj" class="r">Dati<span class="ar">▾</span></th>
+        <th data-k="sub" class="r">Occhio<span class="ar">▾</span></th>
+        <th data-k="fin" class="r">Finale<span class="ar">▾</span></th>
+        <th data-k="cur">Livello<span class="ar">▾</span></th>
+        <th data-k="status">Status<span class="ar">▾</span></th>
+      </tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+
+  <figure>
+    <div class="chart-head">
+      <span class="chart-title">Dove i numeri e l'occhio non sono d'accordo</span>
+      <div class="legend">
+        <span class="lg"><span class="dot d"></span>Dati FotMob</span>
+        <span class="lg"><span class="dot e"></span>Competenze</span>
+      </div>
+    </div>
+    <div class="rows" id="rows"></div>
+    <div class="axrow"><div></div><div class="axis" id="axis"></div></div>
+    <figcaption id="cap"></figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>Scheda giocatore</h2>
+  <p class="sub">Come si compone il punteggio, voce per voce.</p>
+  <div class="picker" id="pick"></div>
+  <div class="idcard" id="idc"></div>
+  <div class="cols">
+    <div class="panel" id="pObj"></div>
+    <div class="panel" id="pSub"></div>
+  </div>
+  <p class="note" id="note"></p>
+</section>
+
+<footer>Scouting database · Pietro Baracchini · aggiornata 2 ottobre 2026</footer>
+</div>
+
+<script>
+var P = [{"name":"Andreas Schjelderup","club":"Benfica","league":"Liga Portugal","born":2004,"nat":"NOR","foot":"Right","h":176,"mv":"40M","pos":"AM-W","prof":"W","team":null,"cur":"B","pot":"A","prio":"Medium","status":"Shortlisted","season":"2025/26","mins":1733,"obj":64.2,"objw":100,"sub":71.4,"subw":100,"fin":68.1,"mets":[{"n":"xG","raw":6.35,"used":0.33,"mn":0.08,"mx":0.55,"s":53.1,"w":15},{"n":"xA","raw":7.21,"used":0.37,"mn":0.05,"mx":0.45,"s":81.1,"w":15},{"n":"Chances created","raw":41,"used":2.13,"mn":0.8,"mx":3.2,"s":55.4,"w":10},{"n":"Big chances created","raw":9,"used":0.47,"mn":0.05,"mx":0.5,"s":92.8,"w":10},{"n":"Goals","raw":7,"used":0.36,"mn":0.05,"mx":0.6,"s":57.0,"w":10},{"n":"Successful dribbles","raw":36,"used":1.87,"mn":0.6,"mx":4,"s":37.3,"w":10},{"n":"Dribble success %","raw":43.4,"used":43.4,"mn":35,"mx":62,"s":31.1,"w":8},{"n":"Touches in opp. box","raw":180,"used":9.35,"mn":1.5,"mx":8,"s":100.0,"w":8},{"n":"Assists","raw":5,"used":0.26,"mn":0.03,"mx":0.4,"s":62.1,"w":7},{"n":"Poss. won final third","raw":25,"used":1.3,"mn":0.3,"mx":2,"s":58.7,"w":5},{"n":"Dispossessed","raw":17,"used":0.88,"mn":1,"mx":4,"s":100.0,"w":2}],"comps":[{"n":"Dribbling","v":6.5,"w":15},{"n":"Crossing","v":7.5,"w":15},{"n":"Playmaking","v":7.75,"w":14},{"n":"Run in behind","v":7,"w":14},{"n":"Finishing","v":6.75,"w":14},{"n":"High pressing","v":7.5,"w":14},{"n":"Tracking back","v":7,"w":14}]},{"name":"Sergi Dominguez","club":"Dinamo Zagreb","league":"Supersport HNL","born":2005,"nat":"ESP","foot":"Right","h":191,"mv":"9M","pos":"CB","prof":"CB","team":null,"cur":"B","pot":"A","prio":"Medium","status":"Shortlisted","season":"2025/26","mins":2575,"obj":62.6,"objw":90,"sub":70.4,"subw":100,"fin":66.9,"mets":[{"n":"Duels won %","raw":62.9,"used":62.9,"mn":45,"mx":68,"s":77.8,"w":20},{"n":"Aerial won %","raw":66.9,"used":66.9,"mn":45,"mx":78,"s":66.4,"w":20},{"n":"Pass accuracy %","raw":87.1,"used":87.1,"mn":72,"mx":94,"s":68.6,"w":15},{"n":"Interceptions","raw":38,"used":1.33,"mn":0.6,"mx":2.4,"s":40.5,"w":12},{"n":"Tackles won %","raw":null,"used":null,"mn":50,"mx":85,"s":null,"w":10},{"n":"Recoveries","raw":136,"used":4.75,"mn":3,"mx":8,"s":35.1,"w":8},{"n":"Accurate long balls","raw":110,"used":3.84,"mn":1,"mx":6,"s":56.9,"w":8},{"n":"Dribbled past","raw":17,"used":0.59,"mn":0.2,"mx":1.6,"s":71.8,"w":7}],"comps":[{"n":"Def crosses","v":6,"w":17},{"n":"Space behind","v":7,"w":17},{"n":"Duels","v":7.5,"w":17},{"n":"Leave position to press","v":7.75,"w":17},{"n":"Build-up under pressure","v":7.25,"w":16},{"n":"Build-up without pressure","v":6.75,"w":16}]},{"name":"Nacho Ferri","club":"Feyenoord","league":"Eredivisie","born":2004,"nat":"SPA","foot":"Right","h":192,"mv":"10M","pos":"ST","prof":"ST","team":null,"cur":"B","pot":"B","prio":"Medium","status":"Watching","season":"2025/26","mins":2910,"obj":56.4,"objw":95,"sub":70.5,"subw":100,"fin":64.2,"mets":[{"n":"Non-penalty xG","raw":16.2,"used":0.5,"mn":0.15,"mx":0.75,"s":58.5,"w":22},{"n":"Goals","raw":11,"used":0.34,"mn":0.1,"mx":0.8,"s":34.3,"w":15},{"n":"xGOT","raw":16.17,"used":0.5,"mn":0.15,"mx":0.8,"s":53.9,"w":10},{"n":"Touches in opp. box","raw":206,"used":6.37,"mn":2.5,"mx":9,"s":59.6,"w":10},{"n":"Shots on target","raw":42,"used":1.3,"mn":0.5,"mx":2.2,"s":47.0,"w":8},{"n":"Conversion %","raw":42,"used":42,"mn":8,"mx":25,"s":100.0,"w":8},{"n":"xA","raw":2.4,"used":0.07,"mn":0.03,"mx":0.3,"s":16.4,"w":8},{"n":"Aerial won %","raw":63.1,"used":63.1,"mn":25,"mx":60,"s":100.0,"w":7},{"n":"Duels won %","raw":52.3,"used":52.3,"mn":35,"mx":58,"s":75.2,"w":5},{"n":"Big chances missed","raw":null,"used":null,"mn":0.1,"mx":0.8,"s":null,"w":5},{"n":"Successful dribbles","raw":22,"used":0.68,"mn":0.3,"mx":2.2,"s":20.0,"w":2}],"comps":[{"n":"Target man play","v":7.75,"w":17},{"n":"Run in behind","v":7,"w":17},{"n":"Playmaking","v":6.5,"w":17},{"n":"Finishing","v":7.75,"w":17},{"n":"Dynamic pressing","v":6.75,"w":16},{"n":"Positional defending","v":6.5,"w":16}]},{"name":"Kodai Sano","club":"PSV Eindhoven","league":"Eredivisie","born":2003,"nat":"JAP","foot":"Right","h":176,"mv":"12M","pos":"CM-DM","prof":"CM","team":null,"cur":"C","pot":"A","prio":"High","status":"Recommended","season":"2025/26","mins":3060,"obj":42.2,"objw":77,"sub":75.5,"subw":100,"fin":60.5,"mets":[{"n":"Passes into final third","raw":null,"used":null,"mn":2,"mx":9,"s":null,"w":16},{"n":"Pass accuracy %","raw":83.2,"used":83.2,"mn":76,"mx":93,"s":42.4,"w":12},{"n":"xA","raw":6.08,"used":0.18,"mn":0.03,"mx":0.35,"s":46.5,"w":12},{"n":"Chances created","raw":47,"used":1.38,"mn":0.4,"mx":2.5,"s":46.8,"w":10},{"n":"Successful dribbles","raw":60,"used":1.76,"mn":0.3,"mx":2.5,"s":66.6,"w":8},{"n":"Duels won %","raw":49.9,"used":49.9,"mn":42,"mx":62,"s":39.5,"w":8},{"n":"xG","raw":1.77,"used":0.05,"mn":0.02,"mx":0.35,"s":9.7,"w":7},{"n":"Accurate long balls","raw":65,"used":1.91,"mn":0.5,"mx":5,"s":31.4,"w":7},{"n":"Tackles won","raw":null,"used":null,"mn":0.8,"mx":3,"s":null,"w":7},{"n":"Interceptions","raw":47,"used":1.38,"mn":0.5,"mx":2.2,"s":51.9,"w":6},{"n":"Poss. won final third","raw":21,"used":0.62,"mn":0.2,"mx":1.6,"s":29.8,"w":5},{"n":"Dispossessed","raw":46,"used":1.35,"mn":0.5,"mx":2.5,"s":57.4,"w":2}],"comps":[{"n":"Positional defending","v":8,"w":15},{"n":"Dynamic pressing","v":9,"w":15},{"n":"Dueling","v":8.5,"w":14},{"n":"Movement to receive","v":7.5,"w":14},{"n":"Ball retention","v":6.25,"w":14},{"n":"Ball progression","v":7.25,"w":14},{"n":"Infiltration in the box","v":6.25,"w":14}]},{"name":"Alessandro Vogt","club":"Heidenheim (loan)","league":"2. Bundesliga","born":2005,"nat":"SUI/ITA","foot":"Right","h":188,"mv":"8M","pos":"ST","prof":"ST","team":null,"cur":"D","pot":"B","prio":"Low","status":"Watching","season":"2025/26","mins":2314,"obj":52.7,"objw":95,"sub":66.5,"subw":100,"fin":60.3,"mets":[{"n":"Non-penalty xG","raw":11.33,"used":0.44,"mn":0.15,"mx":0.75,"s":48.4,"w":22},{"n":"Goals","raw":15,"used":0.58,"mn":0.1,"mx":0.8,"s":69.1,"w":15},{"n":"xGOT","raw":14.7,"used":0.57,"mn":0.15,"mx":0.8,"s":64.9,"w":10},{"n":"Touches in opp. box","raw":190,"used":7.39,"mn":2.5,"mx":9,"s":75.2,"w":10},{"n":"Shots on target","raw":36,"used":1.4,"mn":0.5,"mx":2.2,"s":53.0,"w":8},{"n":"Conversion %","raw":38,"used":38,"mn":8,"mx":25,"s":100.0,"w":8},{"n":"xA","raw":1.33,"used":0.05,"mn":0.03,"mx":0.3,"s":8.0,"w":8},{"n":"Aerial won %","raw":31.5,"used":31.5,"mn":25,"mx":60,"s":18.6,"w":7},{"n":"Duels won %","raw":30.9,"used":30.9,"mn":35,"mx":58,"s":0.0,"w":5},{"n":"Big chances missed","raw":null,"used":null,"mn":0.1,"mx":0.8,"s":null,"w":5},{"n":"Successful dribbles","raw":29,"used":1.13,"mn":0.3,"mx":2.2,"s":43.6,"w":2}],"comps":[{"n":"Target man play","v":6.25,"w":17},{"n":"Run in behind","v":6.5,"w":17},{"n":"Playmaking","v":5,"w":17},{"n":"Finishing","v":6.75,"w":17},{"n":"Dynamic pressing","v":8,"w":16},{"n":"Positional defending","v":7.5,"w":16}]}];
+
+var MIN=35, MAX=80, TICKS=[40,50,60,70,80];
+function pc(v){ return ((v-MIN)/(MAX-MIN))*100; }
+function n1(v){ return v==null ? "—" : v.toFixed(1).replace(".",","); }
+function short(s){ var p=s.split(" "); return p[p.length-1]; }
+
+var tip=document.createElement("div"); tip.className="tip"; document.body.appendChild(tip);
+function showTip(ev,html,anchorTop){
+  tip.textContent=html;
+  tip.style.left=(ev.clientX+window.scrollX)+"px";
+  tip.style.top=(anchorTop+window.scrollY)+"px";
+  tip.classList.add("on");
+}
+function hideTip(){ tip.classList.remove("on"); }
+
+/* ---------- table ---------- */
+var sortKey="fin", sortDir=-1, current=0;
+function renderTable(){
+  var rows=P.map(function(p,i){return {p:p,i:i};});
+  rows.sort(function(a,b){
+    var x=a.p[sortKey], y=b.p[sortKey];
+    if(typeof x==="string"){ return x.localeCompare(y)*sortDir; }
+    return ((x==null?-1:x)-(y==null?-1:y))*sortDir;
+  });
+  var tb=document.getElementById("tb");
+  tb.innerHTML="";
+  rows.forEach(function(r){
+    var p=r.p;
+    var tr=document.createElement("tr");
+    if(r.i===current) tr.className="sel";
+    tr.innerHTML =
+      '<td class="nm">'+p.name+'</td>'+
+      '<td><span class="chip">'+p.prof+'</span></td>'+
+      '<td>'+p.club+'</td>'+
+      '<td class="num">'+n1(p.obj)+'</td>'+
+      '<td class="num">'+n1(p.sub)+'</td>'+
+      '<td class="num fin">'+n1(p.fin)+'</td>'+
+      '<td class="lvl">'+(p.cur||"—")+" → "+(p.pot||"—")+'</td>'+
+      '<td>'+(p.status||"—")+'</td>';
+    tr.addEventListener("click", function(){ select(r.i); });
+    tb.appendChild(tr);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("#tbl th"), function(th){
+    th.className = th.dataset.k===sortKey ? "on" : "";
+    th.querySelector(".ar").textContent = sortDir<0 ? "▾" : "▴";
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll("#tbl th"), function(th){
+  th.addEventListener("click", function(){
+    var k=th.dataset.k;
+    if(k===sortKey){ sortDir=-sortDir; } else { sortKey=k; sortDir = (k==="name"||k==="club"||k==="prof"||k==="status"||k==="cur") ? 1 : -1; }
+    renderTable();
+  });
+});
+
+/* ---------- dumbbell ---------- */
+function renderDumbbell(){
+  var rows=document.getElementById("rows"); rows.innerHTML="";
+  var order=P.slice().sort(function(a,b){ return b.fin-a.fin; });
+  order.forEach(function(p){
+    var row=document.createElement("div"); row.className="drow";
+    var lab=document.createElement("div"); lab.className="rlab"; lab.textContent=short(p.name);
+    var tr=document.createElement("div"); tr.className="track";
+    TICKS.forEach(function(t){ var g=document.createElement("div"); g.className="gl"; g.style.left=pc(t)+"%"; tr.appendChild(g); });
+    var lo=Math.min(p.obj,p.sub), hi=Math.max(p.obj,p.sub);
+    var c=document.createElement("div"); c.className="conn";
+    c.style.left=pc(lo)+"%"; c.style.width=(pc(hi)-pc(lo))+"%"; tr.appendChild(c);
+    [["d",p.obj],["e",p.sub]].forEach(function(q){
+      var d=document.createElement("div"); d.className="pt "+q[0]; d.style.left=pc(q[1])+"%"; tr.appendChild(d);
+    });
+    tr.addEventListener("mousemove", function(ev){
+      var r=tr.getBoundingClientRect();
+      showTip(ev, p.name+" · dati "+n1(p.obj)+" · occhio "+n1(p.sub)+" · Δ "+n1(p.sub-p.obj), r.top);
+    });
+    tr.addEventListener("mouseleave", hideTip);
+    row.appendChild(lab); row.appendChild(tr); rows.appendChild(row);
+  });
+  var axis=document.getElementById("axis"); axis.innerHTML="";
+  TICKS.forEach(function(t){ var e=document.createElement("div"); e.className="tick"; e.style.left=pc(t)+"%"; e.textContent=t; axis.appendChild(e); });
+
+  var dsp=Math.max.apply(null,P.map(function(p){return p.obj;}))-Math.min.apply(null,P.map(function(p){return p.obj;}));
+  var ssp=Math.max.apply(null,P.map(function(p){return p.sub;}))-Math.min.apply(null,P.map(function(p){return p.sub;}));
+  var worst=P.slice().sort(function(a,b){ return (b.sub-b.obj)-(a.sub-a.obj); })[0];
+  document.getElementById("cap").textContent =
+    "I punteggi dati si distribuiscono su "+n1(dsp)+" punti, quelli occhio su "+n1(ssp)+
+    ". Lo scarto più ampio è "+worst.name+", "+n1(worst.sub-worst.obj)+" punti sopra sull'occhio.";
+}
+
+/* ---------- player detail ---------- */
+function bar(name, val, pct, weight, cls, tipText, missing){
+  var d=document.createElement("div");
+  d.className="brow"+(missing?" na":"");
+  var w = weight==null ? "" : '<span class="bw">'+weight+'%</span>';
+  d.innerHTML =
+    '<div class="bl"><span class="bn">'+name+'</span><span><span class="bv">'+val+'</span>'+w+'</span></div>'+
+    '<div class="bt"><div class="bf '+cls+'" style="width:'+(missing?0:Math.max(0,Math.min(100,pct)))+'%"></div></div>';
+  if(tipText){
+    d.addEventListener("mousemove", function(ev){ showTip(ev, tipText, d.getBoundingClientRect().top); });
+    d.addEventListener("mouseleave", hideTip);
+  }
+  return d;
+}
+
+function renderDetail(){
+  var p=P[current];
+
+  var idc=document.getElementById("idc");
+  var fields=[["Club",p.club],["Campionato",p.league],["Nato",p.born],["Naz",p.nat],
+              ["Piede",p.foot],["Altezza",p.h?p.h+" cm":"—"],["Valore",p.mv],
+              ["Stagione",p.season],["Minuti",p.mins],["Ruolo",p.pos],["Profilo",p.prof],
+              ["Livello",(p.cur||"—")+" → "+(p.pot||"—")]];
+  idc.innerHTML = fields.map(function(f){
+    return '<div class="idc"><div class="k">'+f[0]+'</div><div class="v">'+(f[1]==null?"—":f[1])+'</div></div>';
+  }).join("");
+
+  var o=document.getElementById("pObj");
+  o.innerHTML='<div class="ph"><span class="pt2">Dati FotMob</span><span class="pv d">'+n1(p.obj)+'</span></div>'+
+              '<div class="pmeta">peso attivo '+p.objw+'% di 100 · stagione '+p.season+'</div>';
+  p.mets.forEach(function(m){
+    var missing = m.s==null;
+    var val = missing ? "non su FotMob" : n1(m.s);
+    var t = missing
+      ? m.n+" · non disponibile · pesa "+m.w+"%"
+      : m.n+" · totale "+m.raw+" · per 90: "+m.used+" · banda "+m.mn+"–"+m.mx;
+    o.appendChild(bar(m.n, val, m.s, m.w, "d", t, missing));
+  });
+
+  var s=document.getElementById("pSub");
+  s.innerHTML='<div class="ph"><span class="pt2">Competenze '+p.prof+'</span><span class="pv e">'+n1(p.sub)+'</span></div>'+
+              '<div class="pmeta">'+p.comps.length+' voci · scala 1–10</div>';
+  p.comps.forEach(function(c){
+    var missing = c.v==null;
+    s.appendChild(bar(c.n, missing?"non votata":String(c.v).replace(".",","), (c.v||0)*10, c.w, "e",
+      c.n+" · "+(missing?"non votata":c.v+"/10")+" · pesa "+c.w+"%", missing));
+  });
+
+  var gap=p.sub-p.obj;
+  var miss=p.mets.filter(function(m){return m.s==null;});
+  var txt;
+  if(Math.abs(gap)<5){ txt="Numeri e occhio concordano: "+n1(Math.abs(gap))+" punti di scarto."; }
+  else if(gap>0){ txt="Lo vedi "+n1(gap)+" punti meglio di come lo descrivono i numeri."; }
+  else { txt="I numeri lo premiano "+n1(-gap)+" punti più del tuo giudizio."; }
+  if(miss.length){
+    txt += "  Attenzione: "+miss.length+(miss.length===1?" metrica manca":" metriche mancano")+
+           " ("+miss.map(function(m){return m.n+" "+m.w+"%";}).join(", ")+
+           "), quindi il punteggio dati è calcolato sul "+p.objw+"% dei pesi.";
+  }
+  document.getElementById("note").textContent=txt;
+  renderTable();
+}
+
+function select(i){
+  current=i;
+  Array.prototype.forEach.call(document.querySelectorAll(".pk"), function(b,j){
+    b.className = "pk"+(j===i?" on":"");
+  });
+  renderDetail();
+}
+
+var pick=document.getElementById("pick");
+P.forEach(function(p,i){
+  var b=document.createElement("button");
+  b.type="button"; b.className="pk"; b.textContent=p.name;
+  b.addEventListener("click", function(){ select(i); });
+  pick.appendChild(b);
+});
+
+/* open on the best-rated player */
+var best=0; P.forEach(function(p,i){ if(p.fin>P[best].fin) best=i; });
+renderDumbbell();
+select(best);
+</script>
+
+</body>
+</html>
