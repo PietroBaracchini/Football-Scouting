@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -150,25 +150,25 @@ footer{padding-block:28px 52px; font-family:var(--mono); font-size:11px; color:v
 
 <header class="top">
   <div>
-    <div class="kicker">scouting_database_fotmob · 8 giocatori</div>
+    <div class="kicker">scouting_database_fotmob · 8 players</div>
     <h1>Scouting board</h1>
   </div>
-  <div class="wts">peso dati <b>45%</b><br>peso occhio <b>55%</b></div>
+  <div class="wts">data <b>45%</b><br>eye <b>55%</b></div>
 </header>
 
 <section>
-  <h2>La shortlist</h2>
-  <p class="sub">Clicca una colonna per ordinare, una riga per aprire la scheda sotto.</p>
+  <h2>The shortlist</h2>
+  <p class="sub">Click a heading to sort, a row to open the breakdown below.</p>
   <div class="tscroll">
     <table id="tbl">
       <thead><tr>
-        <th data-k="name">Giocatore<span class="ar">▾</span></th>
-        <th data-k="prof">Profilo<span class="ar">▾</span></th>
+        <th data-k="name">Player<span class="ar">▾</span></th>
+        <th data-k="prof">Profile<span class="ar">▾</span></th>
         <th data-k="club">Club<span class="ar">▾</span></th>
-        <th data-k="obj" class="r">Dati<span class="ar">▾</span></th>
-        <th data-k="sub" class="r">Occhio<span class="ar">▾</span></th>
-        <th data-k="fin" class="r">Finale<span class="ar">▾</span></th>
-        <th data-k="cur">Livello<span class="ar">▾</span></th>
+        <th data-k="obj" class="r">Data<span class="ar">▾</span></th>
+        <th data-k="sub" class="r">Eye<span class="ar">▾</span></th>
+        <th data-k="fin" class="r">Rating<span class="ar">▾</span></th>
+        <th data-k="cur">Level<span class="ar">▾</span></th>
         <th data-k="status">Status<span class="ar">▾</span></th>
       </tr></thead>
       <tbody id="tb"></tbody>
@@ -177,10 +177,10 @@ footer{padding-block:28px 52px; font-family:var(--mono); font-size:11px; color:v
 
   <figure>
     <div class="chart-head">
-      <span class="chart-title">Dove i numeri e l'occhio non sono d'accordo</span>
+      <span class="chart-title">Where the numbers and the eye disagree</span>
       <div class="legend">
-        <span class="lg"><span class="dot d"></span>Dati FotMob</span>
-        <span class="lg"><span class="dot e"></span>Competenze</span>
+        <span class="lg"><span class="dot d"></span>FotMob data</span>
+        <span class="lg"><span class="dot e"></span>Competencies</span>
       </div>
     </div>
     <div class="rows" id="rows"></div>
@@ -190,8 +190,8 @@ footer{padding-block:28px 52px; font-family:var(--mono); font-size:11px; color:v
 </section>
 
 <section>
-  <h2>Scheda giocatore</h2>
-  <p class="sub">Come si compone il punteggio, voce per voce.</p>
+  <h2>Player breakdown</h2>
+  <p class="sub">How the rating is built, line by line.</p>
   <div class="picker" id="pick"></div>
   <div class="idcard" id="idc"></div>
   <div class="cols">
@@ -201,7 +201,7 @@ footer{padding-block:28px 52px; font-family:var(--mono); font-size:11px; color:v
   <p class="note" id="note"></p>
 </section>
 
-<footer>Scouting database · Pietro Baracchini · aggiornata 5 ottobre 2026</footer>
+<footer>Scouting database · Pietro Baracchini · updated October 21, 2026</footer>
 </div>
 
 <script>
@@ -209,7 +209,7 @@ var P = [{"name":"Andreas Schjelderup","club":"Benfica","league":"Liga Portugal"
 
 var MIN=35, MAX=80, TICKS=[40,50,60,70,80];
 function pc(v){ return ((v-MIN)/(MAX-MIN))*100; }
-function n1(v){ return v==null ? "—" : v.toFixed(1).replace(".",","); }
+function n1(v){ return v==null ? "—" : v.toFixed(1); }
 function short(s){ var p=s.split(" "); return p[p.length-1]; }
 
 var tip=document.createElement("div"); tip.className="tip"; document.body.appendChild(tip);
@@ -278,7 +278,7 @@ function renderDumbbell(){
     });
     tr.addEventListener("mousemove", function(ev){
       var r=tr.getBoundingClientRect();
-      showTip(ev, p.name+" · dati "+n1(p.obj)+" · occhio "+n1(p.sub)+" · Δ "+n1(p.sub-p.obj), r.top);
+      showTip(ev, p.name+" · data "+n1(p.obj)+" · eye "+n1(p.sub)+" · Δ "+n1(p.sub-p.obj), r.top);
     });
     tr.addEventListener("mouseleave", hideTip);
     row.appendChild(lab); row.appendChild(tr); rows.appendChild(row);
@@ -290,8 +290,8 @@ function renderDumbbell(){
   var ssp=Math.max.apply(null,P.map(function(p){return p.sub;}))-Math.min.apply(null,P.map(function(p){return p.sub;}));
   var worst=P.slice().sort(function(a,b){ return (b.sub-b.obj)-(a.sub-a.obj); })[0];
   document.getElementById("cap").textContent =
-    "I punteggi dati si distribuiscono su "+n1(dsp)+" punti, quelli occhio su "+n1(ssp)+
-    ". Lo scarto più ampio è "+worst.name+", "+n1(worst.sub-worst.obj)+" punti sopra sull'occhio.";
+    "Data scores spread over "+n1(dsp)+" points, eye scores over "+n1(ssp)+
+    ". The widest gap is "+worst.name+", "+n1(worst.sub-worst.obj)+" points higher on the eye.";
 }
 
 /* ---------- player detail ---------- */
@@ -313,45 +313,46 @@ function renderDetail(){
   var p=P[current];
 
   var idc=document.getElementById("idc");
-  var fields=[["Club",p.club],["Campionato",p.league],["Nato",p.born],["Naz",p.nat],
-              ["Piede",p.foot],["Altezza",p.h?p.h+" cm":"—"],["Valore",p.mv],
-              ["Stagione",p.season],["Minuti",p.mins],["Ruolo",p.pos],["Profilo",p.prof],
-              ["Livello",(p.cur||"—")+" → "+(p.pot||"—")]];
+  var fields=[["Club",p.club],["League",p.league],["Born",p.born],["Nat",p.nat],
+              ["Foot",p.foot],["Height",p.h?p.h+" cm":"—"],["Value",p.mv],
+              ["Season",p.season],["Minutes",p.mins],["Position",p.pos],["Profile",p.prof],
+              ["Level",(p.cur||"—")+" → "+(p.pot||"—")]];
   idc.innerHTML = fields.map(function(f){
-    return '<div class="idc"><div class="k">'+f[0]+'</div><div class="v">'+(f[1]==null?"—":f[1])+'</div></div>';
+    var val = f[1]==null ? "—" : String(f[1]);
+    return '<div class="idc"><div class="k">'+f[0]+'</div><div class="v" title="'+val+'">'+val+'</div></div>';
   }).join("");
 
   var o=document.getElementById("pObj");
-  o.innerHTML='<div class="ph"><span class="pt2">Dati FotMob</span><span class="pv d">'+n1(p.obj)+'</span></div>'+
-              '<div class="pmeta">peso attivo '+p.objw+'% di 100 · stagione '+p.season+'</div>';
+  o.innerHTML='<div class="ph"><span class="pt2">FotMob data</span><span class="pv d">'+n1(p.obj)+'</span></div>'+
+              '<div class="pmeta">active weight '+p.objw+'% of 100 · season '+p.season+'</div>';
   p.mets.forEach(function(m){
     var missing = m.s==null;
-    var val = missing ? "non su FotMob" : n1(m.s);
+    var val = missing ? "not on FotMob" : n1(m.s);
     var t = missing
-      ? m.n+" · non disponibile · pesa "+m.w+"%"
-      : m.n+" · totale "+m.raw+" · per 90: "+m.used+" · banda "+m.mn+"–"+m.mx;
+      ? m.n+" · not reported · weight "+m.w+"%"
+      : m.n+" · season total "+m.raw+" · per 90: "+m.used+" · band "+m.mn+"–"+m.mx;
     o.appendChild(bar(m.n, val, m.s, m.w, "d", t, missing));
   });
 
   var s=document.getElementById("pSub");
-  s.innerHTML='<div class="ph"><span class="pt2">Competenze '+p.prof+'</span><span class="pv e">'+n1(p.sub)+'</span></div>'+
-              '<div class="pmeta">'+p.comps.length+' voci · scala 1–10</div>';
+  s.innerHTML='<div class="ph"><span class="pt2">Competencies '+p.prof+'</span><span class="pv e">'+n1(p.sub)+'</span></div>'+
+              '<div class="pmeta">'+p.comps.length+' items · 1–10 scale</div>';
   p.comps.forEach(function(c){
     var missing = c.v==null;
-    s.appendChild(bar(c.n, missing?"non votata":String(c.v).replace(".",","), (c.v||0)*10, c.w, "e",
-      c.n+" · "+(missing?"non votata":c.v+"/10")+" · pesa "+c.w+"%", missing));
+    s.appendChild(bar(c.n, missing?"not scored":String(c.v), (c.v||0)*10, c.w, "e",
+      c.n+" · "+(missing?"not scored":c.v+"/10")+" · weight "+c.w+"%", missing));
   });
 
   var gap=p.sub-p.obj;
   var miss=p.mets.filter(function(m){return m.s==null;});
   var txt;
-  if(Math.abs(gap)<5){ txt="Numeri e occhio concordano: "+n1(Math.abs(gap))+" punti di scarto."; }
-  else if(gap>0){ txt="Lo vedi "+n1(gap)+" punti meglio di come lo descrivono i numeri."; }
-  else { txt="I numeri lo premiano "+n1(-gap)+" punti più del tuo giudizio."; }
+  if(Math.abs(gap)<5){ txt="Numbers and eye agree: "+n1(Math.abs(gap))+" points apart."; }
+  else if(gap>0){ txt="You rate him "+n1(gap)+" points higher than the numbers do."; }
+  else { txt="The numbers rate him "+n1(-gap)+" points higher than you do."; }
   if(miss.length){
-    txt += "  Attenzione: "+miss.length+(miss.length===1?" metrica manca":" metriche mancano")+
+    txt += "  Note: "+miss.length+(miss.length===1?" metric is missing":" metrics are missing")+
            " ("+miss.map(function(m){return m.n+" "+m.w+"%";}).join(", ")+
-           "), quindi il punteggio dati è calcolato sul "+p.objw+"% dei pesi.";
+           "), so the data score rests on "+p.objw+"% of the weights.";
   }
   document.getElementById("note").textContent=txt;
   renderTable();
