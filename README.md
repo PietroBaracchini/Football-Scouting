@@ -47,7 +47,7 @@ progression numbers can be read against how his team plays.
 
 ## Status
 
-Early. Five players, fully scored, used to validate the model end to end. The
+Early. Eight players, fully scored, used to validate the model end to end. The
 immediate work is volume: clustering and peer-relative benchmarking need a real
 sample per position before they say anything, and the scoring scale on the eye side
 needs calibrating as more players go in.
